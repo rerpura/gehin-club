@@ -75,3 +75,16 @@ onAuthStateChanged(auth,u=>{user=u;$("postBtn").disabled=!u;$("status").textCont
 $("postBtn").onclick=async()=>{const text=$("postText").value.trim(),name=$("postName").value.trim()||"匿名会員";if(!user||!text)return alert("投稿内容を入力してください。");if(Date.now()-lastPost<10000)return alert("連続投稿は10秒待ってください。");$("postBtn").disabled=true;try{await addDoc(collection(db,"posts"),{name,text,uid:user.uid,createdAt:serverTimestamp()});lastPost=Date.now();$("postText").value=""}catch(e){alert("投稿できませんでした："+e.message)}finally{$("postBtn").disabled=false}};
 const q=query(collection(db,"posts"),orderBy("createdAt","desc"),limit(50));
 onSnapshot(q,snap=>{$("posts").innerHTML=snap.empty?'<p class="small">まだ投稿はありません。</p>':snap.docs.map(d=>{const p=d.data(),own=user&&p.uid===user.uid,date=p.createdAt?.toDate().toLocaleString("ja-JP")||"送信中";return `<article class="post"><div class="postHead"><b>${esc(p.name)}</b><span>${esc(date)}</span></div>${own?`<button class="delete secondary" data-id="${d.id}">削除</button>`:""}<p>${esc(p.text)}</p></article>`}).join("");document.querySelectorAll(".delete").forEach(b=>b.onclick=async()=>{if(confirm("自分の投稿を削除しますか？"))await deleteDoc(doc(db,"posts",b.dataset.id))})},e=>{$("status").textContent="読込失敗：Firestore設定とルールを確認してください。"});
+$("saveCardBtn").onclick = () => {
+
+    html2canvas(document.querySelector(".member")).then(canvas => {
+
+        const link = document.createElement("a");
+
+        link.download = "gehin-member-card.png";
+
+        link.href = canvas.toDataURL("image/png");
+
+        link.click();
+    });
+};
