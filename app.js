@@ -81,10 +81,7 @@ $("saveCardBtn").onclick = () => {
 
         const link = document.createElement("a");
 
-        link.download = "gehin-member-card.png";
-
-        link.href = canvas.toDataURL("image/png");
-
-        link.click();
+       const dataUrl = canvas.toDataURL("image/png");
+window.open(dataUrl, "_blank");
     });
 };
