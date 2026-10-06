@@ -97,7 +97,7 @@ $("logoutBtn").onclick = async () => {
       "ログアウト失敗：" + error.message;
   }
 };
-onAuthStateChanged(auth, u => {
+onAuthStateChanged(auth,async u => {
   user = u;
 
   const loggedIn = Boolean(u);
@@ -112,12 +112,15 @@ onAuthStateChanged(auth, u => {
 
     $("status").textContent =
       "共有掲示板に接続しました。";
+    await recordDailyLogin();
+await loadAchievementStats();
   } else {
     $("loginStatus").textContent =
       "ログインしていません";
 
     $("status").textContent =
       "投稿するにはGoogleログインしてください。";
+    renderAchievements(defaultAchievementStats());
   }
   loadTodayFortune();
 });
