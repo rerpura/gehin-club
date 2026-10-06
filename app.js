@@ -6,7 +6,7 @@ import {
   signOut,
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, deleteDoc, doc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, deleteDoc, doc,getDoc,setDoc, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app); let user=null,lastPost=0;
 const $=id=>document.getElementById(id), esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -139,4 +139,205 @@ $("saveCardBtn").onclick = () => {
     w.document.body.appendChild(img);
 });
     
+};
+const fortunes = [
+  {
+    rarity: "大吉",
+    overall: "★★★★★",
+    excuse: "★★★★★",
+    study: "★★★★☆",
+    shark: "★★★★★",
+    message: "今日は何をしても許される気がする日です。"
+  },
+  {
+    rarity: "大吉",
+    overall: "★★★★★",
+    excuse: "★★★★☆",
+    study: "★★★★★",
+    shark: "★★★★☆",
+    message: "やる気が本人より先に到着しています。"
+  },
+  {
+    rarity: "中吉",
+    overall: "★★★★☆",
+    excuse: "★★★★★",
+    study: "★★★☆☆",
+    shark: "★★★★☆",
+    message: "言い訳の完成度だけは過去最高です。"
+  },
+  {
+    rarity: "中吉",
+    overall: "★★★★☆",
+    excuse: "★★★☆☆",
+    study: "★★★★☆",
+    shark: "★★★★★",
+    message: "サメに関することならだいたいうまくいきます。"
+  },
+  {
+    rarity: "小吉",
+    overall: "★★★☆☆",
+    excuse: "★★★★☆",
+    study: "★★★☆☆",
+    shark: "★★★☆☆",
+    message: "普通の日です。普通が一番とは限りません。"
+  },
+  {
+    rarity: "小吉",
+    overall: "★★★☆☆",
+    excuse: "★★★★★",
+    study: "★★☆☆☆",
+    shark: "★★★★☆",
+    message: "失敗しても言い訳で巻き返せそうです。"
+  },
+  {
+    rarity: "吉",
+    overall: "★★★★☆",
+    excuse: "★★★☆☆",
+    study: "★★★★☆",
+    shark: "★★★☆☆",
+    message: "締切より少しだけ先に動くと吉です。"
+  },
+  {
+    rarity: "末吉",
+    overall: "★★☆☆☆",
+    excuse: "★★★★☆",
+    study: "★★☆☆☆",
+    shark: "★★★☆☆",
+    message: "無理に頑張らず、できるふりから始めましょう。"
+  },
+  {
+    rarity: "凶",
+    overall: "★☆☆☆☆",
+    excuse: "★★★★★",
+    study: "★☆☆☆☆",
+    shark: "★★☆☆☆",
+    message: "今日は言い訳を準備してから行動してください。"
+  },
+  {
+    rarity: "大凶",
+    overall: "☆☆☆☆☆",
+    excuse: "★★★★★",
+    study: "☆☆☆☆☆",
+    shark: "★☆☆☆☆",
+    message: "布団との交渉が決裂しないよう注意してください。"
+  },
+  {
+    rarity: "SSR",
+    overall: "★★★★★",
+    excuse: "★★★★★",
+    study: "★★★★★",
+    shark: "★★★★★",
+    message: "今日は世界のほうがあなたに合わせる日です。"
+  },
+  {
+    rarity: "UR",
+    overall: "★★★★★",
+    excuse: "★★★★★",
+    study: "★★★★★",
+    shark: "★★★★★",
+    message: "伝説の下品神が降臨しました。責任は負いません。"
+  }
+];
+
+function getTodayKey() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function showFortune(fortune) {
+  $("fortuneResult").innerHTML = `
+    <strong>【${esc(fortune.rarity)}】</strong><br><br>
+    総合運：${esc(fortune.overall)}<br>
+    言い訳運：${esc(fortune.excuse)}<br>
+    課題運：${esc(fortune.study)}<br>
+    サメ運：${esc(fortune.shark)}<br><br>
+    ${esc(fortune.message)}
+  `;
+}
+
+async function loadTodayFortune() {
+  if (!user) {
+    $("fortuneBtn").disabled = true;
+    $("fortuneResult").textContent =
+      "Googleログインすると、1日1回だけ引けます。";
+    return;
+  }
+
+  const today = getTodayKey();
+  const fortuneId = `${user.uid}_${today}`;
+  const fortuneRef = doc(db, "dailyFortunes", fortuneId);
+
+  try {
+    const fortuneSnap = await getDoc(fortuneRef);
+
+    if (fortuneSnap.exists()) {
+      showFortune(fortuneSnap.data().fortune);
+
+      $("fortuneBtn").disabled = true;
+      $("fortuneBtn").textContent = "今日は引きました";
+    } else {
+      $("fortuneResult").textContent =
+        "今日の運勢はまだ引いていません。";
+
+      $("fortuneBtn").disabled = false;
+      $("fortuneBtn").textContent = "今日の運勢を引く";
+    }
+  } catch (error) {
+    console.error(error);
+
+    $("fortuneResult").textContent =
+      "運勢の確認に失敗しました。";
+
+    $("fortuneBtn").disabled = true;
+  }
+}
+
+$("fortuneBtn").onclick = async () => {
+  if (!user) {
+    alert("先にGoogleログインしてください。");
+    return;
+  }
+
+  $("fortuneBtn").disabled = true;
+  $("fortuneBtn").textContent = "運勢を占っています…";
+
+  const today = getTodayKey();
+  const fortuneId = `${user.uid}_${today}`;
+  const fortuneRef = doc(db, "dailyFortunes", fortuneId);
+
+  try {
+    const existing = await getDoc(fortuneRef);
+
+    if (existing.exists()) {
+      showFortune(existing.data().fortune);
+      $("fortuneBtn").textContent = "今日は引きました";
+      return;
+    }
+
+    const fortune =
+      fortunes[Math.floor(Math.random() * fortunes.length)];
+
+    await setDoc(fortuneRef, {
+      uid: user.uid,
+      date: today,
+      fortune: fortune,
+      createdAt: serverTimestamp()
+    });
+
+    showFortune(fortune);
+    $("fortuneBtn").textContent = "今日は引きました";
+  } catch (error) {
+    console.error(error);
+
+    $("fortuneResult").textContent =
+      "運勢を引けませんでした：" + error.message;
+
+    $("fortuneBtn").disabled = false;
+    $("fortuneBtn").textContent = "もう一度試す";
+  }
 };
