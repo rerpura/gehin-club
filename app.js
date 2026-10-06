@@ -8,7 +8,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, deleteDoc, doc,getDoc,setDoc,runTransaction, query, orderBy, limit, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.4.0/firebase-firestore.js";
 import { firebaseConfig } from "./firebase-config.js";
-const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app); let user=null,lastPost=0;
+const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app); const FOUNDER_UID = "2lWDM32fWqVOVf7GPg8aVfxth232";
+let user=null,lastPost=0;
 const $=id=>document.getElementById(id), esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const subjects = [
 "目覚まし時計","犬","猫","スマホ","パソコン","Wi‑Fi",
