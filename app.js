@@ -62,7 +62,7 @@ const endings = [
 "詳細は来世で説明します。"
 ];
 
-$("excuseBtn").onclick=()=>{
+$("excuseBtn").onclick = async () => {
     const subject =
         subjects[Math.floor(Math.random()*subjects.length)];
 
