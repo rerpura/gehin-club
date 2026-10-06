@@ -119,6 +119,7 @@ onAuthStateChanged(auth, u => {
     $("status").textContent =
       "投稿するにはGoogleログインしてください。";
   }
+  loadTodayFortune();
 });
 $("postBtn").onclick=async()=>{const text=$("postText").value.trim(),name =
   $("postName").value.trim() ||
