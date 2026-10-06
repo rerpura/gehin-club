@@ -13,32 +13,29 @@
 }
 
 .achievementItem.unlocked {
-  border-color: gold;
-  background: linear-gradient(135deg, #432, #211);
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+  background: linear-gradient(135deg,#4a2500,#150000);
+  color: white;
+  border: 2px solid gold;
+  box-shadow: 0 0 15px gold;
 }
-
 .achievementItem.locked {
-  opacity: 0.45;
-  filter: grayscale(1);
+  opacity: 1;
+  background: #ececec;
+  color: #222;
+  border: 2px solid #999;
 }
-
 .achievementTitle {
   font-weight: bold;
-  font-size: 17px;
+  font-size: 18px;
+  color: inherit;
 }
-
 .achievementDescription {
-  margin-top: 5px;
-  font-size: 14px;
+  color: inherit;
 }
 
 .achievementProgress {
-  margin-top: 5px;
-  color: #ccc;
-  font-size: 13px;
+  color: inherit;
 }
-
 .achievementToast {
   display: none;
   position: fixed;
