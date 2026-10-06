@@ -342,3 +342,424 @@ $("fortuneBtn").onclick = async () => {
     $("fortuneBtn").textContent = "もう一度試す";
   }
 };
+const ACHIEVEMENTS = [
+  {
+    id: "firstPost",
+    icon: "🥉",
+    title: "初投稿",
+    description: "掲示板へ初めて投稿した",
+    check: stats => stats.postsCount >= 1,
+    progress: stats => `${stats.postsCount || 0} / 1投稿`
+  },
+  {
+    id: "regular",
+    icon: "🥈",
+    title: "常連",
+    description: "掲示板へ10回投稿した",
+    check: stats => stats.postsCount >= 10,
+    progress: stats => `${Math.min(stats.postsCount || 0, 10)} / 10投稿`
+  },
+  {
+    id: "veteran",
+    icon: "🥇",
+    title: "ベテラン",
+    description: "掲示板へ50回投稿した",
+    check: stats => stats.postsCount >= 50,
+    progress: stats => `${Math.min(stats.postsCount || 0, 50)} / 50投稿`
+  },
+  {
+    id: "postingLegend",
+    icon: "👑",
+    title: "投稿の王",
+    description: "掲示板へ100回投稿した",
+    check: stats => stats.postsCount >= 100,
+    progress: stats => `${Math.min(stats.postsCount || 0, 100)} / 100投稿`
+  },
+  {
+    id: "excuseMaker",
+    icon: "📄",
+    title: "言い訳職人",
+    description: "言い訳を10回生成した",
+    check: stats => stats.excusesCount >= 10,
+    progress: stats => `${Math.min(stats.excusesCount || 0, 10)} / 10回`
+  },
+  {
+    id: "blameMaster",
+    icon: "🎭",
+    title: "責任転嫁士",
+    description: "言い訳を100回生成した",
+    check: stats => stats.excusesCount >= 100,
+    progress: stats => `${Math.min(stats.excusesCount || 0, 100)} / 100回`
+  },
+  {
+    id: "blameGod",
+    icon: "💀",
+    title: "他責の神",
+    description: "言い訳を1000回生成した",
+    check: stats => stats.excusesCount >= 1000,
+    progress: stats => `${Math.min(stats.excusesCount || 0, 1000)} / 1000回`
+  },
+  {
+    id: "firstCard",
+    icon: "🪪",
+    title: "初会員証",
+    description: "初めて会員証を発行した",
+    check: stats => stats.cardsCount >= 1,
+    progress: stats => `${stats.cardsCount || 0} / 1枚`
+  },
+  {
+    id: "cardCollector",
+    icon: "⭐",
+    title: "会員証コレクター",
+    description: "会員証を10回発行した",
+    check: stats => stats.cardsCount >= 10,
+    progress: stats => `${Math.min(stats.cardsCount || 0, 10)} / 10枚`
+  },
+  {
+    id: "ssrHunter",
+    icon: "🌈",
+    title: "SSRハンター",
+    description: "SSR以上の会員証を獲得した",
+    check: stats => stats.hasSsrCard === true,
+    progress: stats => stats.hasSsrCard ? "獲得済み" : "未獲得"
+  },
+  {
+    id: "sharkMaster",
+    icon: "🦈",
+    title: "サメマスター",
+    description: "今日の運勢でサメ運★★★★★を引いた",
+    check: stats => stats.hasSharkFortune === true,
+    progress: stats => stats.hasSharkFortune ? "獲得済み" : "未獲得"
+  },
+  {
+    id: "loginStreak",
+    icon: "🔥",
+    title: "ログイン勢",
+    description: "7日連続でログインした",
+    check: stats => stats.loginStreak >= 7,
+    progress: stats =>
+      `${Math.min(stats.loginStreak || 0, 7)} / 7日連続`
+  },
+  {
+    id: "founder",
+    icon: "🏛️",
+    title: "下品倶楽部創設者",
+    description: "サイト創設者だけが持つ実績",
+    check: stats => stats.isFounder === true,
+    progress: stats => stats.isFounder ? "創設者" : "限定実績"
+  }
+];
+
+let achievementStats = null;
+let achievementToastTimer = null;
+
+function defaultAchievementStats() {
+  return {
+    postsCount: 0,
+    excusesCount: 0,
+    cardsCount: 0,
+    loginStreak: 0,
+    lastLoginDate: "",
+    hasSsrCard: false,
+    hasSharkFortune: false,
+    isFounder: false,
+    unlockedAchievements: []
+  };
+}
+
+function dateKeyFromDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function todayKeyForAchievements() {
+  return dateKeyFromDate(new Date());
+}
+
+function yesterdayKeyForAchievements() {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  return dateKeyFromDate(yesterday);
+}
+
+function showAchievementToast(achievement) {
+  const toast = $("achievementToast");
+
+  if (!toast) {
+    return;
+  }
+
+  toast.innerHTML = `
+    <strong>🏆 実績解除！</strong><br>
+    ${achievement.icon} ${esc(achievement.title)}<br>
+    <small>${esc(achievement.description)}</small>
+  `;
+
+  toast.classList.add("show");
+
+  clearTimeout(achievementToastTimer);
+
+  achievementToastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 4000);
+}
+
+function renderAchievements(stats) {
+  const list = $("achievementList");
+  const status = $("achievementStatus");
+
+  if (!list || !status) {
+    return;
+  }
+
+  if (!user) {
+    status.textContent =
+      "Googleログインすると実績が表示されます。";
+
+    list.innerHTML = "";
+    return;
+  }
+
+  const unlocked =
+    Array.isArray(stats.unlockedAchievements)
+      ? stats.unlockedAchievements
+      : [];
+
+  status.textContent =
+    `解除済み：${unlocked.length} / ${ACHIEVEMENTS.length}`;
+
+  list.innerHTML = ACHIEVEMENTS.map(achievement => {
+    const isUnlocked = unlocked.includes(achievement.id);
+
+    return `
+      <div class="achievementItem ${
+        isUnlocked ? "unlocked" : "locked"
+      }">
+        <div class="achievementTitle">
+          ${isUnlocked ? achievement.icon : "🔒"}
+          ${esc(achievement.title)}
+        </div>
+
+        <div class="achievementDescription">
+          ${esc(achievement.description)}
+        </div>
+
+        <div class="achievementProgress">
+          ${esc(achievement.progress(stats))}
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function checkAndUnlockAchievements() {
+  if (!user) {
+    return;
+  }
+
+  const statsRef = doc(db, "userStats", user.uid);
+
+  const result = await runTransaction(db, async transaction => {
+    const statsSnap = await transaction.get(statsRef);
+
+    const stats = statsSnap.exists()
+      ? {
+          ...defaultAchievementStats(),
+          ...statsSnap.data()
+        }
+      : defaultAchievementStats();
+
+    const oldUnlocked =
+      Array.isArray(stats.unlockedAchievements)
+        ? stats.unlockedAchievements
+        : [];
+
+    const newUnlocked = [...oldUnlocked];
+    const newlyUnlocked = [];
+
+    ACHIEVEMENTS.forEach(achievement => {
+      if (
+        achievement.check(stats) &&
+        !newUnlocked.includes(achievement.id)
+      ) {
+        newUnlocked.push(achievement.id);
+        newlyUnlocked.push(achievement.id);
+      }
+    });
+
+    stats.unlockedAchievements = newUnlocked;
+
+    transaction.set(
+      statsRef,
+      {
+        ...stats,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+
+    return {
+      stats,
+      newlyUnlocked
+    };
+  });
+
+  achievementStats = result.stats;
+  renderAchievements(achievementStats);
+
+  result.newlyUnlocked.forEach((achievementId, index) => {
+    const achievement =
+      ACHIEVEMENTS.find(item => item.id === achievementId);
+
+    if (!achievement) {
+      return;
+    }
+
+    setTimeout(() => {
+      showAchievementToast(achievement);
+    }, index * 4300);
+  });
+}
+
+async function loadAchievementStats() {
+  if (!user) {
+    achievementStats = null;
+    renderAchievements(defaultAchievementStats());
+    return;
+  }
+
+  const statsRef = doc(db, "userStats", user.uid);
+  const statsSnap = await getDoc(statsRef);
+
+  achievementStats = statsSnap.exists()
+    ? {
+        ...defaultAchievementStats(),
+        ...statsSnap.data()
+      }
+    : defaultAchievementStats();
+
+  renderAchievements(achievementStats);
+
+  await checkAndUnlockAchievements();
+}
+
+async function increaseAchievementCounter(fieldName, amount = 1) {
+  if (!user) {
+    return;
+  }
+
+  const allowedFields = [
+    "postsCount",
+    "excusesCount",
+    "cardsCount"
+  ];
+
+  if (!allowedFields.includes(fieldName)) {
+    throw new Error("許可されていない実績カウンターです。");
+  }
+
+  const statsRef = doc(db, "userStats", user.uid);
+
+  await runTransaction(db, async transaction => {
+    const statsSnap = await transaction.get(statsRef);
+
+    const stats = statsSnap.exists()
+      ? {
+          ...defaultAchievementStats(),
+          ...statsSnap.data()
+        }
+      : defaultAchievementStats();
+
+    stats[fieldName] =
+      Number(stats[fieldName] || 0) + amount;
+
+    transaction.set(
+      statsRef,
+      {
+        ...stats,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+  });
+
+  await checkAndUnlockAchievements();
+}
+
+async function setAchievementFlag(fieldName) {
+  if (!user) {
+    return;
+  }
+
+  const allowedFlags = [
+    "hasSsrCard",
+    "hasSharkFortune",
+    "isFounder"
+  ];
+
+  if (!allowedFlags.includes(fieldName)) {
+    throw new Error("許可されていない実績フラグです。");
+  }
+
+  const statsRef = doc(db, "userStats", user.uid);
+
+  await setDoc(
+    statsRef,
+    {
+      true,
+      updatedAt: serverTimestamp()
+    },
+    { merge: true }
+  );
+
+  await checkAndUnlockAchievements();
+}
+
+async function recordDailyLogin() {
+  if (!user) {
+    return;
+  }
+
+  const statsRef = doc(db, "userStats", user.uid);
+  const today = todayKeyForAchievements();
+  const yesterday = yesterdayKeyForAchievements();
+
+  await runTransaction(db, async transaction => {
+    const statsSnap = await transaction.get(statsRef);
+
+    const stats = statsSnap.exists()
+      ? {
+          ...defaultAchievementStats(),
+          ...statsSnap.data()
+        }
+      : defaultAchievementStats();
+
+    if (stats.lastLoginDate === today) {
+      return;
+    }
+
+    if (stats.lastLoginDate === yesterday) {
+      stats.loginStreak =
+        Number(stats.loginStreak || 0) + 1;
+    } else {
+      stats.loginStreak = 1;
+    }
+
+    stats.lastLoginDate = today;
+
+    transaction.set(
+      statsRef,
+      {
+        ...stats,
+        updatedAt: serverTimestamp()
+      },
+      { merge: true }
+    );
+  });
+
+  await checkAndUnlockAchievements();
+}
