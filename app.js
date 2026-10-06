@@ -718,7 +718,7 @@ async function setAchievementFlag(fieldName) {
   await setDoc(
     statsRef,
     {
-      true,
+      [fieldName]: true,
       updatedAt: serverTimestamp()
     },
     { merge: true }
