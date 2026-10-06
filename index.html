@@ -1,5 +1,77 @@
 <!doctype html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>下品倶楽部</title><style>
-:root{--r:#861f1f;--g:#d9b45d;--d:#241b17}*{box-sizing:border-box}body{margin:0;background:#ead9ba;color:#251d18;font-family:"Yu Mincho",serif}header{background:var(--d);color:#fff1cf;text-align:center;padding:50px 15px;border-bottom:6px double var(--g)}h1{font-size:clamp(42px,9vw,75px);letter-spacing:.15em;margin:0}main{max-width:900px;margin:auto;padding:20px}section{background:#fffaf0;border:2px solid #4b362b;box-shadow:7px 7px #9c5235;padding:22px;margin:22px 0}h2{color:var(--r);border-bottom:3px double var(--r)}input,textarea,button{font:inherit}input,textarea{width:100%;padding:11px;margin:6px 0 12px;border:1px solid #8b7967}textarea{height:90px;resize:vertical}button{padding:11px 17px;border:0;background:var(--r);color:#fff;font-weight:bold;cursor:pointer}.secondary{background:#555}.output,.post{background:white;border-left:5px solid var(--g);padding:14px;margin:12px 0}.postHead{display:flex;justify-content:space-between;color:#725f50;font-size:13px}.post p{white-space:pre-wrap}.member{background:linear-gradient(135deg,#8a261e,#24110f);color:#fff1c8;border:5px double var(--g);padding:23px;border-radius:12px;margin-top:15px}.small{font-size:13px;color:#75685e}.status{padding:9px;background:#f1e6ce}.delete{float:right;padding:5px 9px;font-size:12px}footer{text-align:center;background:var(--d);color:#fff1cf;padding:25px}</style></head><body>
+:root{--r:#861f1f;--g:#d9b45d;--d:#241b17}*{box-sizing:border-box}body{margin:0;background:#ead9ba;color:#251d18;font-family:"Yu Mincho",serif}header{background:var(--d);color:#fff1cf;text-align:center;padding:50px 15px;border-bottom:6px double var(--g)}h1{font-size:clamp(42px,9vw,75px);letter-spacing:.15em;margin:0}main{max-width:900px;margin:auto;padding:20px}section{background:#fffaf0;border:2px solid #4b362b;box-shadow:7px 7px #9c5235;padding:22px;margin:22px 0}h2{color:var(--r);border-bottom:3px double var(--r)}input,textarea,button{font:inherit}input,textarea{width:100%;padding:11px;margin:6px 0 12px;border:1px solid #8b7967}textarea{height:90px;resize:vertical}button{padding:11px 17px;border:0;background:var(--r);color:#fff;font-weight:bold;cursor:pointer}.secondary{background:#555}.output,.post{background:white;border-left:5px solid var(--g);padding:14px;margin:12px 0}.postHead{display:flex;justify-content:space-between;color:#725f50;font-size:13px}.post p{white-space:pre-wrap}.member{background:linear-gradient(135deg,#8a261e,#24110f);color:#fff1c8;border:5px double var(--g);padding:23px;border-radius:12px;margin-top:15px}.small{font-size:13px;color:#75685e}.status{padding:9px;background:#f1e6ce}.delete{float:right;padding:5px 9px;font-size:12px}footer{text-align:center;background:var(--d);color:#fff1cf;padding:25px}#achievementList {
+  display: grid;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.achievementItem {
+  padding: 12px;
+  border: 2px solid #444;
+  border-radius: 12px;
+  background: #222;
+}
+
+.achievementItem.unlocked {
+  border-color: gold;
+  background: linear-gradient(135deg, #432, #211);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+}
+
+.achievementItem.locked {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+.achievementTitle {
+  font-weight: bold;
+  font-size: 17px;
+}
+
+.achievementDescription {
+  margin-top: 5px;
+  font-size: 14px;
+}
+
+.achievementProgress {
+  margin-top: 5px;
+  color: #ccc;
+  font-size: 13px;
+}
+
+.achievementToast {
+  display: none;
+  position: fixed;
+  left: 50%;
+  bottom: 25px;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: min(90%, 420px);
+  padding: 16px;
+  border: 2px solid gold;
+  border-radius: 14px;
+  color: white;
+  background: #181818;
+  text-align: center;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.55);
+}
+
+.achievementToast.show {
+  display: block;
+  animation: achievementPop 0.35s ease;
+}
+
+@keyframes achievementPop {
+  from {
+    transform: translateX(-50%) scale(0.7);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+}</style></head><body>
 <header><h1>下品倶楽部</h1><p>背伸びをやめて、堂々とくだらなく。</p></header><main>
 <section><h2>今日の言い訳メーカー</h2><div id="excuse" class="output">まだ生成されていません。</div><button id="excuseBtn">言い訳を生成</button></section>
 <section class="card">
