@@ -112,7 +112,9 @@ onAuthStateChanged(auth,async u => {
   $("googleLoginBtn").hidden = loggedIn;
   $("logoutBtn").hidden = !loggedIn;
 
-  if (loggedIn) {
+  if (loggedIn) {if (u.uid === FOUNDER_UID) {
+  await setAchievementFlag("isFounder");
+}
     $("loginStatus").textContent =
       `${u.displayName || "会員"}としてログイン中`;
 
