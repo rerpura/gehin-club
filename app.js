@@ -79,9 +79,25 @@ $("excuseBtn").onclick = async () => {
   await increaseAchievementCounter("excusesCount");
 }
 };
-$("issueBtn").onclick=async()=>{$("cardName").textContent=$("memberName").value.trim()||"名もなき会員";$("cardTitle").textContent="肩書き："+($("memberTitle").value.trim()||"一般会員");$("cardNo").textContent="NO. "+String(Math.floor(Math.random()*1e6)).padStart(6,"0")};if (user) {
-  await increaseAchievementCounter("cardsCount");
-}
+$("issueBtn").onclick = async() => {
+
+  $("cardName").textContent =
+    $("memberName").value.trim() || "名もなき会員";
+
+  $("cardTitle").textContent =
+    "肩書き：" +
+    ($("memberTitle").value.trim() || "一般会員");
+
+  $("cardNo").textContent =
+    "NO. " +
+    String(Math.floor(Math.random() * 1e6))
+      .padStart(6, "0");
+
+  if (user) {
+    await increaseAchievementCounter("cardsCount");
+  }
+
+};
 const provider = new GoogleAuthProvider();
 
 $("googleLoginBtn").onclick = async () => {
