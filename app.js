@@ -288,6 +288,16 @@ function showFortune(fortune) {
     ${esc(fortune.message)}
   `;
 }
+async function checkSharkMaster(fortune) {
+  if (!user || !fortune) return;
+
+  const sharkText = String(fortune.shark || "");
+  const starCount = (sharkText.match(/★/g) || []).length;
+
+  if (starCount >= 5) {
+    await setAchievementFlag("hasSharkFortune");
+  }
+}
 
 async function loadTodayFortune() {
   if (!user) {
@@ -305,11 +315,15 @@ async function loadTodayFortune() {
     const fortuneSnap = await getDoc(fortuneRef);
 
     if (fortuneSnap.exists()) {
-      showFortune(fortuneSnap.data().fortune);
+  const savedFortune = fortuneSnap.data().fortune;
 
-      $("fortuneBtn").disabled = true;
-      $("fortuneBtn").textContent = "今日は引きました";
-    } else {
+  showFortune(savedFortune);
+  await checkSharkMaster(savedFortune);
+
+  $("fortuneBtn").disabled = true;
+  $("fortuneBtn").textContent = "今日は引きました";
+}
+    else {
       $("fortuneResult").textContent =
         "今日の運勢はまだ引いていません。";
 
@@ -343,10 +357,14 @@ $("fortuneBtn").onclick = async () => {
     const existing = await getDoc(fortuneRef);
 
     if (existing.exists()) {
-      showFortune(existing.data().fortune);
-      $("fortuneBtn").textContent = "今日は引きました";
-      return;
-    }
+  const savedFortune = existing.data().fortune;
+
+  showFortune(savedFortune);
+  await checkSharkMaster(savedFortune);
+
+  $("fortuneBtn").textContent = "今日は引きました";
+  return;
+}
 
     const fortune =
       fortunes[Math.floor(Math.random() * fortunes.length)];
